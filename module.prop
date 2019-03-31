@@ -1,6 +1,6 @@
-id=template
-name=Template Module
+id=magisk-bromite-webview-arm64
+name=Bromite SystemWebView (arm64)
 version=v1
 versionCode=1
-author=topjohnwu
-description=A short description
+author=uwx
+description=Systemlessly replaces the AOSP WebView with the Bromite SystemWebView. Only supports ARM64 devices on SDK21 (Lollipop) and above. Will only work on devices that don't require signed WebView. May not work on your device. May not be continously updated. Tread with caution.
