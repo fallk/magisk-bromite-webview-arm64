@@ -15,7 +15,7 @@ build_script:
     #
     curl.exe -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe > jq.exe
   
-    $apk = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest | jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
+    $apk = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest | ./jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
     mkdir system/app/webview -ea 0
     curl.exe -L $apk > system/app/webview/webview.apk
     
