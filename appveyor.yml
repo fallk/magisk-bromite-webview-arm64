@@ -12,6 +12,7 @@ build_script:
  #
  - git checkout master
  - ps: |-
+    #
     curl.exe -L -s https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe > jq.exe
   
     $apk = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest | jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
@@ -21,5 +22,5 @@ build_script:
     git add system/app/webview/webview.apk
     git commit -m "Automated Appveyor build at $env:mydate, $env:mytime [skip ci]" --amend --allow-empty
     git push -f origin master
- #
+    #
  
