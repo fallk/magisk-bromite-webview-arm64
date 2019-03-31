@@ -1,0 +1,25 @@
+environment:
+  access_token:
+    secure: qNMRA5boyCslJ9JgiqjpLdHd0NvhQVWcjJx3ZMrcgrDz6DNFJnDsV7w9IZuhqwYZ
+
+build_script:
+ - git config --global credential.helper store
+ - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+ - git config --global user.email "appveyor@notarealem.ail"
+ - git config --global user.name "Appveyor Automated Build"
+ - cmd: For /f "tokens=2-4 delims=/ " %%a in ('date /t') do (set mydate=%%c-%%a-%%b)
+ - cmd: For /f "tokens=1-2 delims=/:" %%a in ('time /t') do (set mytime=%%a:%%b)
+ #
+ - git checkout master
+ - ps: |-
+    curl.exe -L -s https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe > jq.exe
+  
+    $apk = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest | jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
+    mkdir system/app/webview -ea 0
+    curl.exe -L -s $apk > system/app/webview/webview.apk
+    
+    git add system/app/webview/webview.apk
+    git commit -m "Automated Appveyor build at $env:mydate, $env:mytime [skip ci]" --amend --allow-empty
+    git push -f origin master
+ #
+ 
