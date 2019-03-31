@@ -13,7 +13,7 @@ build_script:
  - git checkout master
  - ps: |-
     #
-    curl.exe -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe > jq.exe
+    curl.exe -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win32.exe > jq.exe
   
     $apk = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest | ./jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
     mkdir system/app/webview -ea 0
