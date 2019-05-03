@@ -37,7 +37,7 @@ after_build:
   - rm -rf deploy/.git*
 
 artifacts:
-  - path: ./
+  - path: deploy
     type: zip
 
 deploy:
