@@ -13,14 +13,30 @@ build_script:
  - git checkout master
  - ps: |-
     #
+    $ErrorActionPreference = 'SilentlyContinue'
+    
     curl.exe -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win32.exe --output jq.exe
   
-    $apk = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest | ./jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
+    $apk = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest 2> $null | ./jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
     mkdir system/app/webview -ea 0
-    curl.exe -L $apk --output system/app/webview/webview.apk
+    curl.exe -L $apk --output system/app/webview/webview.apk 2> $null
     
     git add system/app/webview/webview.apk
     git commit -m "Automated Appveyor build at $env:mydate, $env:mytime [skip ci]" --amend --allow-empty
     git push -f origin master
+    
+    exit 0
     #
- 
+
+artifacts:
+  - path: .
+    type: zip
+
+deploy:
+  - provider: NuGet
+    skip_symbols: false
+    api_key:
+      secure: A8JdC8M46tJ0WR+LjRq2cHuMfjCOEZ2xU7c75iayd7AnNvgqq7XrCKV5uGyeTpZL
+    # don't push D#+ packages, also don't push test packages
+    artifact: /.*/
+   
