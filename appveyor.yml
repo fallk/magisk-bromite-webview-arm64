@@ -29,8 +29,11 @@ build_script:
     true
     #
 
+before_package:
+  - rm -rf .git/
+
 artifacts:
-  - path: .
+  - path: $(APPVEYOR_BUILD_FOLDER)
     type: zip
 
 deploy:
