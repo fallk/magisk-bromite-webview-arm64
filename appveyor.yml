@@ -30,7 +30,7 @@ build_script:
     #
 
 after_build:
-  - mkdir ../deploy
+  - 'mkdir ..\deploy'
   - cp -a . ../deploy
   - mv -T ../deploy ./deploy
   - rm -rf deploy/.git/
