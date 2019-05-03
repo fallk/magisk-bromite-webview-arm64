@@ -25,7 +25,8 @@ build_script:
     git commit -m "Automated Appveyor build at $env:mydate, $env:mytime [skip ci]" --amend --allow-empty
     git push -f origin master
     
-    exit 0
+    $LASTEXITCODE = 0
+    exit
     #
 
 artifacts:
