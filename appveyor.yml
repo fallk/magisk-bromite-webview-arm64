@@ -30,7 +30,11 @@ build_script:
     #
 
 after_build:
-  - rm -rf .git/
+  - mkdir ../deploy
+  - cp -a . ../deploy
+  - mv -T ../deploy ./deploy
+  - rm -rf deploy/.git/
+  - rm -rf deploy/.git*
 
 artifacts:
   - path: ./
