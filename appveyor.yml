@@ -1,0 +1,78 @@
+environment:
+  access_token:
+    secure: qNMRA5boyCslJ9JgiqjpLdHd0NvhQVWcjJx3ZMrcgrDz6DNFJnDsV7w9IZuhqwYZ
+
+skip_tags: true
+
+build_script:
+ - git config --global credential.helper store
+ - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+ - git config --global user.email "appveyor@notarealem.ail"
+ - git config --global user.name "Appveyor Automated Build"
+ - cmd: For /f "tokens=2-4 delims=/ " %%a in ('date /t') do (set mydate=%%c-%%a-%%b)
+ - cmd: For /f "tokens=1-2 delims=/:" %%a in ('time /t') do (set mytime=%%a:%%b)
+ #
+ - git checkout master
+ - ps: |-
+    #
+    $ErrorActionPreference = 'SilentlyContinue'
+    
+    curl.exe -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win32.exe --output jq.exe
+  
+    $apk64 = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest 2> $null | ./jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm64_SystemWebView.apk\") | .url')
+    $apk32 = $(curl.exe -s https://api.github.com/repos/bromite/bromite/releases/latest 2> $null | ./jq.exe -r '.assets[] | {url: .browser_download_url, name: .name} | select(.name == \"arm_SystemWebView.apk\") | .url')
+    
+    mkdir system/app/webview -ea 0
+    curl.exe -L $apk64 --output system/app/webview/webview.apk 2> $null
+    git add system/app/webview/webview.apk
+    
+    mkdir system/app/webview/lib/armeabi-v7a -ea 0
+    curl.exe -L $apk32 --output webview32.apk 2> $null
+    curl.exe -L https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.4.0.jar --output apktool.jar 2> $null
+    java.exe -jar apktool.jar d webview32.apk
+    cp.exe webview32/lib/armeabi-v7a/libwebviewchromium.so system/app/webview/lib/armeabi-v7a/libwebviewchromium.so
+    rm -rf webview32
+    rm webview32.apk
+    git add system/app/webview/lib/armeabi-v7a/libwebviewchromium.so
+    
+    git commit -m "Automated Appveyor build at $env:mydate, $env:mytime [skip ci]" --amend --allow-empty
+    git push -f origin master
+    
+    $LASTEXITCODE = 0
+    true
+    #
+
+after_build:
+  - 'mkdir ..\deploy'
+  - cp -a . ../deploy
+  - mv -T ../deploy ./deploy
+  - rm -rf deploy/.git/
+  - rm -rf deploy/.git*
+
+artifacts:
+  - path: deploy
+    type: zip
+
+deploy:
+    # deploying to GitHub releases
+  - provider: GitHub
+    tag: build-$(APPVEYOR_BUILD_NUMBER)
+    release: "magisk-bromite-webview-arm64 r$(APPVEYOR_BUILD_NUMBER)"
+    description: |
+      Build project $(APPVEYOR_PROJECT_ID)
+      Cloned repo to $(APPVEYOR_BUILD_FOLDER)
+      Revision $(APPVEYOR_BUILD_NUMBER) ($(APPVEYOR_REPO_SCM) commit $(APPVEYOR_REPO_COMMIT) from $(APPVEYOR_REPO_NAME)/$(APPVEYOR_REPO_BRANCH))
+      Commit info:
+      ```
+      $(APPVEYOR_REPO_COMMIT_TIMESTAMP) $(APPVEYOR_REPO_COMMIT_AUTHOR):
+      $(APPVEYOR_REPO_COMMIT_MESSAGE)
+      ```
+    auth_token:
+      secure: qNMRA5boyCslJ9JgiqjpLdHd0NvhQVWcjJx3ZMrcgrDz6DNFJnDsV7w9IZuhqwYZ # your encrypted token from GitHub
+    artifact: /.*/  # upload all NuGet packages and docs to release assets
+    draft: false
+    prerelease: true
+    on:
+      branch: master                 # release from master branch only
+      appveyor_repo_tag: false       # no deploy on tag push
+      
